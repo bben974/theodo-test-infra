@@ -1,0 +1,6 @@
+postgres_path: "/data/postgresql"
+POSTGRES_USER: "postgres"
+POSTGRES_PASSWORD: "w3D9L9oaVjpI"
+POSTGRES_DB: "postgres"
+POSTGRES_PORT: "5432"
+DOCKER_TAG: 17

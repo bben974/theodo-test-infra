@@ -1,0 +1,7 @@
+---
+- name: Install and configure postgreSQL
+  gather_facts: true
+  hosts: all
+  roles:
+    - docker
+    - postgresql

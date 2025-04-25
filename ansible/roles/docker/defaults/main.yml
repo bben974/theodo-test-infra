@@ -1,0 +1,3 @@
+---
+# defaults file for docker
+is_remote_api: "false"

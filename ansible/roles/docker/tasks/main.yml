@@ -1,0 +1,92 @@
+---
+- name: Update the apt package index
+  become: true
+  apt:
+    update_cache: yes
+
+- name: Install packages for apt add repository over HTTPS
+  become: true
+  apt:
+    name: "{{ packagesdep }}"
+    force_apt_get: true
+    state: present
+    update_cache: true
+  vars:
+    packagesdep:
+    - git
+    - apt-transport-https
+    - ca-certificates
+    - wget
+    - software-properties-common
+    - gnupg2
+    - curl
+
+- name: Add Apt signing key from official docker repo
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/debian/gpg
+    state: present
+
+- name: Get debian version
+  shell: lsb_release -cs
+  register: debian_version
+
+- name: add docker official repository for Debian
+  become: yes
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ debian_version.stdout }} stable"
+    state: present
+
+- name: Index new repo into the cache
+  become: yes
+  apt:
+    name: "*"
+    state: present
+    update_cache: yes
+    force_apt_get: yes
+
+- name: actually install docker
+  become: true
+  apt:
+    name: "docker-ce"
+    state: present
+
+- name: Ensure group docker exists
+  become: true
+  group:
+      name: docker
+      state: present
+
+- name: Add ansible user to docker group
+  become: true
+  user:
+     name: "{{ ansible_user }}"
+     groups: docker
+     append: yes
+
+- name: reset ssh connection
+  meta: reset_connection
+  
+- name: Install dependencies
+  become: true
+  apt:
+    name:
+      - python3-pip
+      - python3-setuptools
+    state: present
+    update_cache: True
+
+- name: Enabled api remote in file systemd
+  become: true
+  shell: "sed -i 's@fd://@fd:// -H tcp://0.0.0.0:2775@g' /lib/systemd/system/docker.service"
+  when: is_remote_api == 'true'
+
+- name: Reload daemon systemctl
+  become: true
+  shell: "systemctl daemon-reload"
+  when: is_remote_api == 'true'
+
+- name: Reload service docker
+  become: true
+  shell: "service docker restart"
+  when: is_remote_api == 'true'

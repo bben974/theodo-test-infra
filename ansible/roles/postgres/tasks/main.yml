@@ -1,0 +1,20 @@
+- name: Create postgresql data directory
+  become: true
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ postgres_path }}/data"
+    - "{{ postgres_path }}/init"
+
+- name: Create postgresql container
+  docker_container:
+    name: "{{ POSTGRES_HOST }}"
+    image: "postgres:{{ DOCKER_TAG }}"
+    pull: true
+    restart_policy: always
+    recreate: true
+    volumes:
+      - "{{ postgres_path }}/data:/var/lib/postgresql/data"
+    env:
+      POSTGRES_PASSWORD: "{{ POSTGRES_PASSWORD }}"
